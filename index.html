@@ -989,7 +989,7 @@ Ghi chú thêm nếu cần..."
             <label>Ảnh kèo / ảnh màn hình (tùy chọn)</label>
             <button class="btn-ghost btn-file" type="button">
               <span>📷 Chọn / chụp ảnh cho AI phân tích</span>
-              <input id="ai-context-image-input" type="file" accept="image/*" capture="environment" />
+              <input id="ai-context-image-input" type="file" accept="image/*" />
             </button>
             <div class="image-preview" id="ai-context-image-preview-wrapper" style="display:none;">
               <img id="ai-context-image-preview" alt="Ảnh phân tích AI" />
@@ -1054,7 +1054,7 @@ Ghi chú thêm nếu cần..."
           </div>
           <button class="btn-primary btn-file" type="button">
             <span>📷 Chọn / chụp ảnh kèo</span>
-            <input id="bet-image-input" type="file" accept="image/*" capture="environment" />
+            <input id="bet-image-input" type="file" accept="image/*" />
           </button>
           <div class="summary-sub" style="margin-top:6px;">
             Chụp lại màn hình đang hiển thị odds, loại kèo, tên trận đấu. Sau này AI sẽ tự đọc thông tin kèo trong ảnh.
@@ -1240,6 +1240,8 @@ Ghi chú thêm nếu cần..."
     // TỰ ĐIỀN API KEY GEMINI CỦA BẠN VÀO DÒNG DƯỚI, KHÔNG CHIA SẺ CHO AI:
     const GEMINI_API_KEY = "AIzaSyD_9eNED9nHnDE3WnHj_2yI9hNNVTFhvZA"; // <-- sửa trực tiếp trên máy của bạn
     const GEMINI_MODEL = "gemini-2.0-pro"; // hoặc "gemini-2.0-flash"
+    // Backend GAS proxy URL
+    const API_URL_SOI_KEO = "https://script.google.com/macros/s/AKfycbx95CP7upkZnlQR_XyfEmV93qEzIsrn2gUpll1GIRYu8OoseHB_rQvLdyjLFQT0q93W/exec";
 
     // Biến lưu base64 của ảnh bối cảnh dùng cho AI phân tích (text + ảnh)
     let aiContextImageDataUrl = null;
@@ -1785,93 +1787,30 @@ Ghi chú thêm nếu cần..."
     }
 
     async function callGeminiForSoiKeo(payload) {
-      if (!GEMINI_API_KEY || GEMINI_API_KEY === "YOUR_GEMINI_API_KEY_HERE") {
-        alert("Bạn chưa điền GEMINI_API_KEY trong file HTML.");
-        throw new Error("Missing GEMINI_API_KEY");
+      if (!API_URL_SOI_KEO) {
+        alert("Chưa cấu hình URL backend GAS (API_URL_SOI_KEO).");
+        throw new Error("Missing API_URL_SOI_KEO");
       }
 
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
-
-      const sysText = `
-Bạn là trợ lý soi kèo trung lập, nói tiếng Việt.
-Nhiệm vụ: phân tích trận đấu, gom thông tin (BXH, phong độ, sân nhà/sân khách, lịch sử đối đầu, chấn thương, lịch thi đấu dày, động lực...).
-CHỈ ĐƯỢC TRẢ VỀ JSON với format:
-
-{
-  "summaryQuick": "tóm tắt 2-3 câu, dễ hiểu",
-  "keyPoints": "các gạch đầu dòng về phong độ, BXH, lịch sử đối đầu, lịch thi đấu, chấn thương...",
-  "viewOnBet": "góc nhìn khách quan về độ ngon/không ngon của kèo, tuyệt đối không nói chắc chắn thắng",
-  "warning": "những rủi ro, kịch bản xấu có thể xảy ra",
-  "leanSide": "AI hơi nghiêng về bên nào, hoặc trung lập",
-  "riskScore": 0-10,
-  "rawText": "bản phân tích đầy đủ, chi tiết, vẫn bằng tiếng Việt"
-}
-
-Không được viết thêm chữ nào bên ngoài JSON.
-`;
-
-      const parts = [
-        { text: sysText },
-        {
-          text:
-            (payload.text || "") +
-            (payload.link ? `\nLink người dùng cung cấp: ${payload.link}` : "") +
-            (payload.depth ? `\nMức độ đào sâu: ${payload.depth}` : "")
-        }
-      ];
-
-      if (payload.imageDataUrl) {
-        const match = payload.imageDataUrl.match(/^data:(.+?);base64,(.+)$/);
-        if (match) {
-          const mimeType = match[1];
-          const base64Data = match[2];
-          parts.push({
-            inline_data: {
-              mime_type: mimeType,
-              data: base64Data,
-            },
-          });
-        }
-      }
-
-      const body = {
-        contents: [{ parts }],
-        generationConfig: {
-          temperature: 0.6,
-          maxOutputTokens: 2048,
-        },
-      };
-
-      const res = await fetch(url, {
+      const res = await fetch(API_URL_SOI_KEO, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
         const errText = await res.text();
-        console.error("Gemini error:", res.status, errText);
-        throw new Error("Gemini API error " + res.status);
+        console.error("GAS proxy error:", res.status, errText);
+        throw new Error("GAS/Gemini API error " + res.status);
       }
 
       const data = await res.json();
-      const textResp = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-
-      let parsed;
-      try {
-        parsed = JSON.parse(textResp);
-      } catch (e) {
-        parsed = {
-          summaryQuick: "Không parse được JSON từ Gemini.",
-          keyPoints: "",
-          viewOnBet: "",
-          warning: "",
-          leanSide: "Trung lập",
-          riskScore: 5,
-          rawText: textResp,
-        };
+      if (data && data.error) {
+        console.error("GAS returned error:", data.message);
+        throw new Error(data.message || "GAS reported error");
       }
-      return parsed;
+      // GAS đã trả đúng schema JSON: summaryQuick, keyPoints, viewOnBet, warning, leanSide, riskScore, rawText
+      return data;
     }
 
     if (btnRunAi) {
