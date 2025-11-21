@@ -1,0 +1,1904 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Manager88 - Bankroll Manager · Kelly Variant</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <style>
+    :root {
+      --bg-main: #050712;
+      --bg-card: #111525;
+      --bg-soft: #181c30;
+      --accent: #4ade80;
+      --accent-soft: rgba(74, 222, 128, 0.12);
+      --danger: #fb7185;
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --border-soft: #1f2937;
+      --radius-lg: 16px;
+      --radius-full: 999px;
+      --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.8);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #111827 0, #020617 50%, #000 100%);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      font-size: 16px; /* chữ to hơn, dễ nhìn */
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 480px;
+      height: 100vh;
+      max-height: 920px;
+      background: linear-gradient(160deg, #020617 0%, #020617 40%, #020617 100%);
+      border-radius: 24px;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.15);
+    }
+
+    /* HEADER */
+
+    .app-header {
+      padding: 14px 18px 10px;
+      background: radial-gradient(circle at top left, #1f2937 0, #020617 60%);
+      border-bottom: 1px solid rgba(31, 41, 55, 0.8);
+    }
+
+    .app-header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .app-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .app-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 12px;
+      background: conic-gradient(from 180deg, #4ade80, #22d3ee, #6366f1, #4ade80);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 19px;
+      color: #020617;
+    }
+
+    .app-title-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .app-title-text span:first-child {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
+    }
+
+    .app-title-text span:last-child {
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    .tag-version {
+      font-size: 12px;
+      padding: 4px 9px;
+      border-radius: var(--radius-full);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      color: var(--text-muted);
+    }
+
+    .header-summary {
+      display: flex;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .summary-pill {
+      flex: 1;
+      background: linear-gradient(135deg, rgba(74, 222, 128, 0.12), rgba(56, 189, 248, 0.05));
+      border-radius: var(--radius-lg);
+      padding: 10px 12px;
+      border: 1px solid rgba(74, 222, 128, 0.35);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .summary-pill.secondary {
+      background: rgba(15, 23, 42, 0.8);
+      border-color: rgba(31, 41, 55, 0.9);
+    }
+
+    .summary-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .summary-value {
+      font-size: 19px;
+      font-weight: 600;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .summary-value small {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    .summary-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .summary-positive {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .summary-negative {
+      color: var(--danger);
+      font-weight: 500;
+    }
+
+    /* MAIN CONTENT */
+
+    .app-main {
+      flex: 1;
+      padding: 10px 14px 4px;
+      overflow-y: auto;
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.8), #020617 50%, #020617 100%);
+    }
+
+    .screen {
+      display: none;
+      animation: fadeIn 0.22s ease-out;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    .screen-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .screen-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    /* CARDS & ELEMENTS */
+
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      padding: 12px 14px;
+      border: 1px solid var(--border-soft);
+      margin-bottom: 10px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 8px;
+      border-radius: var(--radius-full);
+      background: var(--bg-soft);
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .chip-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .form-row {
+      margin-bottom: 8px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+
+    .input, .select, .textarea {
+      width: 100%;
+      padding: 9px 11px;
+      border-radius: 12px;
+      border: 1px solid var(--border-soft);
+      background: var(--bg-soft);
+      color: var(--text-main);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+      -webkit-appearance: none;
+    }
+
+    .input:focus, .select:focus, .textarea:focus {
+      border-color: rgba(74, 222, 128, 0.7);
+      box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.4);
+      background: #020617;
+    }
+
+    .input[readonly],
+    .input:disabled {
+      opacity: 0.8;
+      background: #020617;
+      color: var(--text-muted);
+    }
+
+    .textarea {
+      resize: vertical;
+      min-height: 80px;
+      max-height: 160px;
+    }
+
+    .range-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .range-row .range-value {
+      font-size: 13px;
+      min-width: 50px;
+      text-align: right;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 5px;
+      border-radius: 999px;
+      background: #1f2937;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid #020617;
+      box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.25);
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid #020617;
+      box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.25);
+      cursor: pointer;
+    }
+
+    .pill-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      padding: 7px 11px;
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      background: var(--bg-soft);
+      color: var(--text-muted);
+      border: 1px solid var(--border-soft);
+      cursor: pointer;
+    }
+
+    .pill.active {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: rgba(74, 222, 128, 0.7);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      padding: 3px 9px;
+      border-radius: var(--radius-full);
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      color: var(--text-muted);
+    }
+
+    .badge-dot-green {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .badge-dot-red {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--danger);
+    }
+
+    .highlight-box {
+      background: var(--accent-soft);
+      border-radius: 12px;
+      padding: 9px 10px;
+      border: 1px dashed rgba(74, 222, 128, 0.7);
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-top: 4px;
+      gap: 10px;
+    }
+
+    .highlight-box span {
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .highlight-box small {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .btn-primary {
+      width: 100%;
+      border: none;
+      border-radius: var(--radius-full);
+      padding: 10px 14px;
+      margin-top: 8px;
+      background: linear-gradient(120deg, #22c55e, #22d3ee);
+      color: #020617;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-primary:active {
+      transform: translateY(1px);
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.5);
+    }
+
+    .btn-ghost {
+      width: 100%;
+      border-radius: var(--radius-full);
+      border: 1px dashed rgba(75, 85, 99, 0.9);
+      padding: 9px 12px;
+      margin-top: 6px;
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-muted);
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-file {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-file input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .btn-mini {
+      border-radius: var(--radius-full);
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-muted);
+      font-size: 12px;
+      padding: 4px 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-mini.primary {
+      border-color: rgba(74, 222, 128, 0.8);
+      color: var(--accent);
+      background: rgba(22, 163, 74, 0.1);
+    }
+
+    .image-preview {
+      margin-top: 8px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px dashed rgba(55, 65, 81, 0.9);
+      background: rgba(15, 23, 42, 0.8);
+      max-height: 200px;
+    }
+
+    .image-preview img {
+      display: block;
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+    }
+
+    /* BET LIST */
+
+    .bet-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .bet-item {
+      background: var(--bg-card);
+      border-radius: 12px;
+      border: 1px solid var(--border-soft);
+      padding: 8px 10px;
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .bet-main-row {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 4px;
+    }
+
+    .bet-main {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .bet-sport {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .bet-match {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .bet-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .bet-side {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .bet-odds {
+      font-size: 12px;
+    }
+
+    .bet-profit-positive {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .bet-profit-negative {
+      color: var(--danger);
+      font-weight: 500;
+    }
+
+    .bet-status-row {
+      margin-top: 4px;
+      padding-top: 4px;
+      border-top: 1px dashed rgba(55, 65, 81, 0.9);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .bet-status-row label {
+      font-size: 11px;
+      margin-bottom: 0;
+    }
+
+    .bet-status-select {
+      flex: 1;
+      min-width: 120px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-main);
+      font-size: 12px;
+    }
+
+    /* BOTTOM NAV */
+
+    .app-nav {
+      height: 64px;
+      padding: 6px 10px 10px;
+      border-top: 1px solid rgba(31, 41, 55, 0.9);
+      background: rgba(2, 6, 23, 0.98);
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .nav-item {
+      flex: 1;
+      border-radius: var(--radius-full);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      color: var(--text-muted);
+      font-size: 12px;
+      cursor: pointer;
+      position: relative;
+      padding-bottom: 2px;
+    }
+
+    .nav-item span.icon {
+      font-size: 20px;
+    }
+
+    .nav-item.active {
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.45);
+    }
+
+    .nav-indicator {
+      position: absolute;
+      bottom: 4px;
+      width: 18px;
+      height: 3px;
+      border-radius: 999px;
+      background: var(--accent);
+      opacity: 0;
+    }
+
+    .nav-item.active .nav-indicator {
+      opacity: 1;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (min-width: 768px) {
+      body {
+        background: radial-gradient(circle at top, #020617 0, #020617 100%);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- HEADER -->
+    <header class="app-header">
+      <div class="app-header-top">
+        <div class="app-title">
+          <div class="app-logo">₭</div>
+          <div class="app-title-text">
+            <span>Manager88 · Bankroll</span>
+            <span>Kelly Variant · VND</span>
+          </div>
+        </div>
+        <div class="tag-version">v0.3 UI · AI Ready</div>
+      </div>
+
+      <div class="header-summary">
+        <div class="summary-pill">
+          <div class="summary-label">Vốn hiện tại</div>
+          <div class="summary-value">
+            <span id="summary-bankroll">10.000.000</span>
+            <small>VND</small>
+          </div>
+          <div class="summary-sub">
+            Hạn mức ngày:
+            <span class="summary-negative" id="summary-day-limit">-300.000đ</span>
+          </div>
+        </div>
+        <div class="summary-pill secondary">
+          <div class="summary-label">Hôm nay</div>
+          <div class="summary-value">
+            <span class="summary-positive" id="summary-today">+150.000</span>
+            <small>VND</small>
+          </div>
+          <div class="summary-sub">
+            Tháng này:
+            <span class="summary-positive" id="summary-month">+420.000đ</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN -->
+    <main class="app-main">
+      <!-- SCREEN: DASHBOARD -->
+      <section class="screen active" data-screen="dashboard">
+        <div class="screen-title">Tổng quan</div>
+        <div class="screen-subtitle">
+          Một nơi để bạn nhìn nhanh vốn, lãi/lỗ và mức độ rủi ro mỗi ngày.
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Tóm tắt vốn</div>
+            <div class="chip">
+              <span class="chip-dot"></span>
+              <span>Safe mode · Kelly</span>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div>
+              <label>Vốn ban đầu</label>
+              <div class="summary-value" style="font-size:16px;">
+                <span id="dash-B0">10.000.000</span><small>VND</small>
+              </div>
+              <div class="summary-sub">Bạn tự nhập trong phần “Vốn & Kelly”.</div>
+            </div>
+            <div>
+              <label>Risk mỗi vé (tối đa)</label>
+              <div class="summary-value" style="font-size:16px;">
+                <span id="dash-fmax">2</span><small>% bankroll</small>
+              </div>
+              <div class="summary-sub">Giới hạn theo tham số Kelly biến thể.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Giới hạn lỗ</div>
+            <span class="badge">
+              <span class="badge-dot-red"></span> Anti-tilt
+            </span>
+          </div>
+          <div class="form-grid">
+            <div>
+              <label>Giới hạn lỗ ngày</label>
+              <div class="summary-value" style="font-size:16px;">
+                <span id="dash-day-limit">3</span><small>% / ngày</small>
+              </div>
+              <div class="summary-sub">Chạm giới hạn là dừng cược trong ngày.</div>
+            </div>
+            <div>
+              <label>Giới hạn lỗ tháng</label>
+              <div class="summary-value" style="font-size:16px;">
+                <span id="dash-month-limit">10</span><small>% / tháng</small>
+              </div>
+              <div class="summary-sub">Bảo vệ tài chính dài hạn.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Hiệu suất gần đây</div>
+            <span class="badge">
+              <span class="badge-dot-green"></span> Demo tĩnh
+            </span>
+          </div>
+          <div class="form-grid">
+            <div>
+              <label>Winrate 30 ngày</label>
+              <div class="summary-value" style="font-size:16px;">
+                <span>54</span><small>%</small>
+              </div>
+              <div class="summary-sub">Số liệu demo, sau này lấy từ dữ liệu thật.</div>
+            </div>
+            <div>
+              <label>ROI 30 ngày</label>
+              <div class="summary-value" style="font-size:16px;">
+                <span>+3.8</span><small>%</small>
+              </div>
+              <div class="summary-sub">Chỉ báo hiệu suất tổng thể.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN: BANKROLL & KELLY -->
+      <section class="screen" data-screen="bankroll">
+        <div class="screen-title">Vốn & Kelly</div>
+        <div class="screen-subtitle">
+          Bước 1: bạn tự nhập vốn ban đầu (VND). Bước 2: chỉnh tham số Kelly biến thể theo mức độ chấp nhận rủi ro của bạn.
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Vốn ban đầu & hiện tại</div>
+            <span class="badge">
+              <span class="badge-dot-green"></span> Bạn tự nhập
+            </span>
+          </div>
+          <div class="form-row">
+            <label for="input-B0">Vốn ban đầu (VND)</label>
+            <input
+              id="input-B0"
+              class="input"
+              type="number"
+              placeholder="Ví dụ: 10000000"
+              inputmode="numeric"
+            />
+            <div class="summary-sub">
+              Đây là số tiền bạn chấp nhận mất hoàn toàn mà không ảnh hưởng cuộc sống (coi như phí giải trí).
+            </div>
+          </div>
+          <div class="form-row">
+            <label for="input-Bt">Vốn hiện tại (VND)</label>
+            <input
+              id="input-Bt"
+              class="input"
+              type="number"
+              placeholder="Mặc định = vốn ban đầu, sau này cập nhật theo kèo"
+              inputmode="numeric"
+            />
+            <div class="summary-sub">
+              Sau này phần logic sẽ tự cập nhật theo kết quả kèo. Tạm thời bạn có thể chỉnh tay cho đơn giản.
+            </div>
+          </div>
+          <button id="btn-save-config" class="btn-primary" type="button">
+            <span>💾 Lưu cấu hình vốn</span>
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Tham số Kelly biến thể</div>
+            <span class="badge">
+              <span class="badge-dot-green"></span> Fractional Kelly
+            </span>
+          </div>
+
+          <div class="form-row">
+            <label for="range-fraction">Tỉ lệ Kelly sử dụng (fraction)</label>
+            <div class="range-row">
+              <input
+                id="range-fraction"
+                type="range"
+                min="5"
+                max="50"
+                value="25"
+              />
+              <div class="range-value">
+                <span id="label-fraction">25</span><span>%</span>
+              </div>
+            </div>
+            <div class="summary-sub">
+              25% Kelly = Kelly/4. Tăng giá trị này = chấp nhận biến động vốn mạnh hơn. Giữ thấp cho an toàn.
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-row">
+              <label for="range-fmax">Risk tối đa mỗi vé (f_max)</label>
+              <div class="range-row">
+                <input
+                  id="range-fmax"
+                  type="range"
+                  min="1"
+                  max="5"
+                  value="2"
+                />
+                <div class="range-value">
+                  <span id="label-fmax">2</span><span>%</span>
+                </div>
+              </div>
+              <div class="summary-sub">
+                Giới hạn cứng: mỗi vé không được vượt quá X% bankroll hiện tại.
+              </div>
+            </div>
+            <div class="form-row">
+              <label for="range-fmin">Ngưỡng tối thiểu (f_min)</label>
+              <div class="range-row">
+                <input
+                  id="range-fmin"
+                  type="range"
+                  min="0"
+                  max="1"
+                  value="0"
+                  step="0.1"
+                />
+                <div class="range-value">
+                  <span id="label-fmin">0.2</span><span>%</span>
+                </div>
+              </div>
+              <div class="summary-sub">
+                Nếu tỉ lệ Kelly < f_min → coi như edge quá nhỏ, bỏ qua kèo cho đỡ loãng.
+              </div>
+            </div>
+          </div>
+
+          <div class="card-header" style="margin-top:6px;">
+            <div class="card-title">Giới hạn lỗ ngày & tháng</div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-row">
+              <label for="range-day-limit">Lỗ tối đa / ngày</label>
+              <div class="range-row">
+                <input
+                  id="range-day-limit"
+                  type="range"
+                  min="1"
+                  max="10"
+                  value="3"
+                />
+                <div class="range-value">
+                  <span id="label-day-limit">3</span><span>%</span>
+                </div>
+              </div>
+            </div>
+            <div class="form-row">
+              <label for="range-month-limit">Lỗ tối đa / tháng</label>
+              <div class="range-row">
+                <input
+                  id="range-month-limit"
+                  type="range"
+                  min="5"
+                  max="30"
+                  value="10"
+                />
+                <div class="range-value">
+                  <span id="label-month-limit">10</span><span>%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button id="btn-save-kelly" class="btn-ghost" type="button">
+            <span>🔒 Lưu tham số Kelly</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- SCREEN: AI SOI & PHÂN TÍCH KÈO -->
+      <section class="screen" data-screen="ai">
+        <div class="screen-title">AI soi & phân tích kèo</div>
+        <div class="screen-subtitle">
+          Mục tiêu: AI sẽ <b>đi bới móc thông tin xung quanh trận đấu</b> (BXH, phong độ, lịch sử đối đầu, chấn thương, lịch thi đấu, tin bên lề...)
+          và trả về một bản nhận định khách quan. <b>Bạn luôn là người quyết định cuối cùng</b>.
+        </div>
+
+        <!-- KHỐI 1: AI phân tích kèo qua text/link (dùng internet) -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Phân tích kèo bằng dữ liệu & internet</div>
+            <span class="badge">
+              <span class="badge-dot-green"></span> Dùng Gemini + web search (tương lai)</span>
+          </div>
+
+          <div class="form-row">
+            <label for="ai-text-match">
+              Mô tả kèo / copy nội dung từ nhà cái
+            </label>
+            <textarea
+              id="ai-text-match"
+              class="textarea"
+              placeholder="Ví dụ:
+Arsenal vs Chelsea - Ngoại hạng Anh
+Kèo: Arsenal -0.5 @ 1.90
+Ghi chú thêm nếu cần..."
+            ></textarea>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-row">
+              <label for="ai-link">Link tham khảo (tùy chọn)</label>
+              <input
+                id="ai-link"
+                class="input"
+                placeholder="Dán link bài phân tích / trang kèo..."
+              />
+            </div>
+            <div class="form-row">
+              <label for="ai-depth">Mức độ đào sâu</label>
+              <select id="ai-depth" class="input">
+                <option value="fast">Nhanh, gọn</option>
+                <option value="normal" selected>Chuẩn, vừa phải</option>
+                <option value="deep">Rất kỹ, soi từng ngóc ngách</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label>Ảnh kèo / ảnh màn hình (tùy chọn)</label>
+            <button class="btn-ghost btn-file" type="button">
+              <span>📷 Chọn / chụp ảnh cho AI phân tích</span>
+              <input id="ai-context-image-input" type="file" accept="image/*" capture="environment" />
+            </button>
+            <div class="image-preview" id="ai-context-image-preview-wrapper" style="display:none;">
+              <img id="ai-context-image-preview" alt="Ảnh phân tích AI" />
+            </div>
+            <div class="summary-sub">
+              Ảnh này để AI “nhìn” bố cục kèo, logo đội, giải đấu, thời gian... Sau này sẽ được gửi kèm cùng text lên Gemini.
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label>AI sẽ tìm những gì?</label>
+            <div class="summary-sub">
+              • BXH, phong độ 5–10 trận gần nhất, sân nhà/sân khách<br/>
+              • Lịch sử đối đầu, số bàn thắng/bại trung bình<br/>
+              • Chấn thương, treo giò, lịch thi đấu dày, động lực thi đấu<br/>
+              • Nếu có dữ liệu: xG, số cú sút, khả năng phòng ngự/tấn công...
+            </div>
+          </div>
+
+          <button class="btn-primary" type="button" id="btn-run-ai-analysis">
+            <span>🧠 Gửi yêu cầu AI phân tích (demo)</span>
+          </button>
+
+          <div class="form-row" style="margin-top:8px;">
+            <label>Kết quả phân tích AI (demo – text tĩnh)</label>
+            <textarea
+              id="ai-analysis-result"
+              class="textarea"
+              readonly
+              placeholder="Sau này AI sẽ trả kết quả phân tích chi tiết tại đây:
+• Tóm tắt sức mạnh hai đội
+• Các yếu tố ẩn (chấn thương, lịch thi đấu...)
+• Nhận định khách quan về độ ngon của kèo
+• Cảnh báo rủi ro & nghiêng về bên nào"
+            ></textarea>
+          </div>
+
+          <div class="highlight-box">
+            <div>
+              <small>Định hướng cuối cùng:</small><br />
+              <span id="ai-lean-side">Trung lập</span>
+            </div>
+            <div style="text-align:right;">
+              <small>Mức độ rủi ro (AI đánh giá):</small><br />
+              <span id="ai-risk-score">—</span><small>/10</small>
+            </div>
+          </div>
+
+          <div class="summary-sub" style="margin-top:6px;">
+            Lưu ý quan trọng: AI chỉ là <b>trợ lý</b>, không phải thần thánh. 
+            Nó giúp bạn gom thông tin & sắp xếp lại cho dễ hiểu. <b>Quyết định đặt hay không luôn là của bạn</b>.
+          </div>
+        </div>
+
+        <!-- KHỐI 2: AI soi kèo từ ảnh (trích xuất thông tin kèo) -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Soi kèo từ ảnh (trích xuất thông tin kèo)</div>
+            <span class="badge">
+              <span class="badge-dot-green"></span> Input 1 ảnh
+            </span>
+          </div>
+          <button class="btn-primary btn-file" type="button">
+            <span>📷 Chọn / chụp ảnh kèo</span>
+            <input id="bet-image-input" type="file" accept="image/*" capture="environment" />
+          </button>
+          <div class="summary-sub" style="margin-top:6px;">
+            Chụp lại màn hình đang hiển thị odds, loại kèo, tên trận đấu. Sau này AI sẽ tự đọc thông tin kèo trong ảnh.
+          </div>
+
+          <div class="image-preview" id="bet-image-preview-wrapper" style="display:none;">
+            <img id="bet-image-preview" alt="Ảnh kèo đã chọn" />
+          </div>
+        </div>
+
+        <!-- Thông tin kèo đọc từ ảnh -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Thông tin kèo (AI đọc từ ảnh)</div>
+            <span class="badge">
+              <span class="badge-dot-green"></span> Demo · Tự động điền sau
+            </span>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-row">
+              <label for="ai-sport">Môn thể thao</label>
+              <input
+                id="ai-sport"
+                class="input"
+                placeholder="VD: Bóng đá, Bóng rổ..."
+                readonly
+              />
+            </div>
+            <div class="form-row">
+              <label for="ai-league">Giải đấu</label>
+              <input
+                id="ai-league"
+                class="input"
+                placeholder="VD: Premier League..."
+                readonly
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label for="ai-match">Trận đấu</label>
+            <input
+              id="ai-match"
+              class="input"
+              placeholder="VD: Arsenal vs Chelsea"
+              readonly
+            />
+          </div>
+
+          <div class="form-grid">
+            <div class="form-row">
+              <label for="ai-market">Loại kèo</label>
+              <input
+                id="ai-market"
+                class="input"
+                placeholder="1X2, Handicap, O/U..."
+                readonly
+              />
+            </div>
+            <div class="form-row">
+              <label for="ai-odds">Odds (thập phân)</label>
+              <input
+                id="ai-odds"
+                class="input"
+                placeholder="1.90"
+                readonly
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label for="ai-pest">Ước lượng xác suất thắng (p_est)</label>
+            <input
+              id="ai-pest"
+              class="input"
+              placeholder="VD: 55% (AI gợi ý, bạn có quyền chỉnh)"
+              readonly
+            />
+            <div class="summary-sub">
+              Sau này AI sẽ gợi ý khoảng xác suất. Cuối cùng <b>bạn</b> vẫn là người quyết định con số dùng cho Kelly.
+            </div>
+          </div>
+        </div>
+
+        <!-- Gợi ý tiền cược theo Kelly biến thể -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Gợi ý tiền cược (Kelly biến thể)</div>
+            <span class="badge">
+              <span class="badge-dot-green"></span> Dựa trên vốn & tham số Kelly
+            </span>
+          </div>
+
+          <div class="highlight-box">
+            <div>
+              <small>Gợi ý stake (demo, chưa tính):</small><br />
+              <span id="ai-stake-suggestion">0</span> <small>VND</small>
+            </div>
+            <div style="text-align:right;">
+              <small>Risk tương đương:</small><br />
+              <span id="ai-stake-percent">0</span><small>% bankroll</small>
+            </div>
+          </div>
+          <div class="summary-sub" style="margin-top:6px;">
+            Quy trình sau này:
+            <ul style="margin:4px 0 0 16px; padding-left:0; font-size:12px;">
+              <li>Ảnh/text → AI trích xuất odds + loại kèo + p_est.</li>
+              <li>App lấy p_est + odds + vốn hiện tại → tính stake theo Kelly biến thể.</li>
+              <li>Bạn kiểm tra lại, nếu thấy hợp lý thì mới vào lệnh.</li>
+            </ul>
+          </div>
+
+          <button id="btn-save-bet" class="btn-primary" type="button">
+            <span>💾 Lưu kèo</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- SCREEN: BET LIST -->
+      <section class="screen" data-screen="bets">
+        <div class="screen-title">Danh sách kèo</div>
+        <div class="screen-subtitle">
+          Khi kèo được trả kết quả, bạn có thể <b>tự cập nhật trạng thái</b> tại đây để app ghi nhận và sau này chạy các logic lãi/lỗ, cập nhật vốn, biểu đồ...
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Tổng quan nhanh</div>
+            <span class="badge">
+              <span class="badge-dot-green"></span> Demo
+            </span>
+          </div>
+          <div class="form-grid">
+            <div>
+              <label>Kèo đã đặt (tháng)</label>
+              <div class="summary-value" style="font-size:16px;">
+                <span>28</span><small>kèo</small>
+              </div>
+            </div>
+            <div>
+              <label>Stake trung bình</label>
+              <div class="summary-value" style="font-size:16px;">
+                <span>120.000</span><small>VND</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+                <div class="bet-list" id="bet-list"></div>
+      </section>
+    </main>
+
+    <!-- NAV -->
+    <nav class="app-nav">
+      <div class="nav-item active" data-target="dashboard">
+        <span class="icon">📊</span>
+        <span>Tổng quan</span>
+        <div class="nav-indicator"></div>
+      </div>
+      <div class="nav-item" data-target="bankroll">
+        <span class="icon">💰</span>
+        <span>Vốn & Kelly</span>
+        <div class="nav-indicator"></div>
+      </div>
+      <div class="nav-item" data-target="ai">
+        <span class="icon">🧠</span>
+        <span>AI soi kèo</span>
+        <div class="nav-indicator"></div>
+      </div>
+      <div class="nav-item" data-target="bets">
+        <span class="icon">📃</span>
+        <span>Danh sách</span>
+        <div class="nav-indicator"></div>
+      </div>
+    </nav>
+  </div>
+
+  <!-- JS nhỏ: chuyển màn, slider label, preview ảnh, demo AI (UI only) -->
+    <script>
+    // ⚠️ CẢNH BÁO: API key đặt trong file HTML rất dễ bị lộ.
+    // Chỉ dùng cách này nếu bạn CHẤP NHẬN RỦI RO và chỉ share file cho riêng mình.
+    // TỰ ĐIỀN API KEY GEMINI CỦA BẠN VÀO DÒNG DƯỚI, KHÔNG CHIA SẺ CHO AI:
+    const GEMINI_API_KEY = "AIzaSyD_9eNED9nHnDE3WnHj_2yI9hNNVTFhvZA"; // <-- sửa trực tiếp trên máy của bạn
+    const GEMINI_MODEL = "gemini-2.0-pro"; // hoặc "gemini-2.0-flash"
+
+    // Biến lưu base64 của ảnh bối cảnh dùng cho AI phân tích (text + ảnh)
+    let aiContextImageDataUrl = null;
+
+    // Chuyển màn (bottom nav)
+    const screens = document.querySelectorAll(".screen");
+    const navItems = document.querySelectorAll(".nav-item");
+
+    navItems.forEach(item => {
+      item.addEventListener("click", () => {
+        const target = item.getAttribute("data-target");
+
+        screens.forEach(s => {
+          s.classList.toggle("active", s.getAttribute("data-screen") === target);
+        });
+
+        navItems.forEach(n => n.classList.remove("active"));
+        item.classList.add("active");
+      });
+    });
+
+    // Slider labels cho Kelly & limits
+    const bindRangeLabel = (rangeId, labelId, transformFn) => {
+      const range = document.getElementById(rangeId);
+      const label = document.getElementById(labelId);
+      if (!range || !label) return;
+      const update = () => {
+        const val = Number(range.value);
+        label.textContent = transformFn ? transformFn(val) : val;
+      };
+      range.addEventListener("input", update);
+      update();
+    };
+
+    bindRangeLabel("range-fraction", "label-fraction");
+    bindRangeLabel("range-fmax", "label-fmax");
+    bindRangeLabel("range-day-limit", "label-day-limit");
+    bindRangeLabel("range-month-limit", "label-month-limit");
+    bindRangeLabel("range-fmin", "label-fmin", v => (v === 0 ? 0.2 : v)); // demo
+    // ====== QUẢN LÝ VỐN & THAM SỐ KELLY (LOCALSTORAGE) ======
+    const STORAGE_KEY_CONFIG = "m88_config_v1";
+    const STORAGE_KEY_BETS = "m88_bets_v1";
+
+    function formatVnd(value) {
+      const n = Number(value) || 0;
+      try {
+        return new Intl.NumberFormat("vi-VN").format(Math.round(n));
+      } catch (e) {
+        return String(Math.round(n));
+      }
+    }
+
+    function loadConfig() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_CONFIG);
+        if (!raw) return null;
+        const cfg = JSON.parse(raw);
+        return cfg && typeof cfg === "object" ? cfg : null;
+      } catch (e) {
+        console.error("Lỗi load config:", e);
+        return null;
+      }
+    }
+
+    function saveConfig(cfg) {
+      try {
+        localStorage.setItem(STORAGE_KEY_CONFIG, JSON.stringify(cfg));
+      } catch (e) {
+        console.error("Lỗi save config:", e);
+      }
+    }
+
+    function getConfigFromUI() {
+      const inputB0 = document.getElementById("input-B0");
+      const inputBt = document.getElementById("input-Bt");
+      const rangeFraction = document.getElementById("range-fraction");
+      const rangeFmax = document.getElementById("range-fmax");
+      const rangeFmin = document.getElementById("range-fmin");
+      const rangeDayLimit = document.getElementById("range-day-limit");
+      const rangeMonthLimit = document.getElementById("range-month-limit");
+
+      const B0 = inputB0 ? Number(inputB0.value || 0) : 0;
+      let Bt = inputBt ? Number(inputBt.value || 0) : 0;
+      if (!Bt && B0) Bt = B0;
+
+      const fraction = rangeFraction ? Number(rangeFraction.value || 25) : 25;
+      const f_max = rangeFmax ? Number(rangeFmax.value || 2) : 2;
+      const fminSlider = rangeFmin ? Number(rangeFmin.value || 0) : 0;
+      const f_min = fminSlider === 0 ? 0.2 : fminSlider;
+      const dayLimit = rangeDayLimit ? Number(rangeDayLimit.value || 3) : 3;
+      const monthLimit = rangeMonthLimit ? Number(rangeMonthLimit.value || 10) : 10;
+
+      return { B0, Bt, fraction, f_max, f_min, dayLimit, monthLimit };
+    }
+
+    function applyConfigToUI(cfg) {
+      if (!cfg) return;
+      const { B0, Bt, fraction, f_max, f_min, dayLimit, monthLimit } = cfg;
+
+      const inputB0 = document.getElementById("input-B0");
+      const inputBt = document.getElementById("input-Bt");
+      const rangeFraction = document.getElementById("range-fraction");
+      const rangeFmax = document.getElementById("range-fmax");
+      const rangeFmin = document.getElementById("range-fmin");
+      const rangeDayLimit = document.getElementById("range-day-limit");
+      const rangeMonthLimit = document.getElementById("range-month-limit");
+
+      if (inputB0) inputB0.value = B0 || "";
+      if (inputBt) inputBt.value = Bt || "";
+
+      if (rangeFraction && typeof fraction !== "undefined") {
+        rangeFraction.value = fraction;
+        rangeFraction.dispatchEvent(new Event("input"));
+      }
+      if (rangeFmax && typeof f_max !== "undefined") {
+        rangeFmax.value = f_max;
+        rangeFmax.dispatchEvent(new Event("input"));
+      }
+      if (rangeFmin && typeof f_min !== "undefined") {
+        const sliderVal = f_min === 0.2 ? 0 : f_min;
+        rangeFmin.value = sliderVal;
+        rangeFmin.dispatchEvent(new Event("input"));
+      }
+      if (rangeDayLimit && typeof dayLimit !== "undefined") {
+        rangeDayLimit.value = dayLimit;
+        rangeDayLimit.dispatchEvent(new Event("input"));
+      }
+      if (rangeMonthLimit && typeof monthLimit !== "undefined") {
+        rangeMonthLimit.value = monthLimit;
+        rangeMonthLimit.dispatchEvent(new Event("input"));
+      }
+
+      // Cập nhật header & dashboard
+      const summaryBankroll = document.getElementById("summary-bankroll");
+      const dashB0 = document.getElementById("dash-B0");
+      const dashFmax = document.getElementById("dash-fmax");
+      const dashDayLimit = document.getElementById("dash-day-limit");
+      const dashMonthLimit = document.getElementById("dash-month-limit");
+      const summaryDayLimit = document.getElementById("summary-day-limit");
+
+      if (summaryBankroll) summaryBankroll.textContent = formatVnd(Bt || 0);
+      if (dashB0) dashB0.textContent = formatVnd(B0 || 0);
+      if (dashFmax) dashFmax.textContent = typeof f_max !== "undefined" ? f_max : 2;
+      if (dashDayLimit) dashDayLimit.textContent = typeof dayLimit !== "undefined" ? dayLimit : 3;
+      if (dashMonthLimit) dashMonthLimit.textContent = typeof monthLimit !== "undefined" ? monthLimit : 10;
+      if (summaryDayLimit) {
+        const lossDay = (Bt || 0) * (dayLimit || 0) / 100;
+        summaryDayLimit.textContent = "-" + formatVnd(lossDay) + "đ";
+      }
+    }
+
+    function initConfig() {
+      let cfg = loadConfig();
+      if (!cfg) {
+        cfg = getConfigFromUI();
+        saveConfig(cfg);
+      }
+      applyConfigToUI(cfg);
+
+      const btnSaveConfig = document.getElementById("btn-save-config");
+      if (btnSaveConfig) {
+        btnSaveConfig.addEventListener("click", () => {
+          const newCfg = getConfigFromUI();
+          saveConfig(newCfg);
+          applyConfigToUI(newCfg);
+          alert("Đã lưu cấu hình vốn (chỉ lưu trên máy của bạn).");
+        });
+      }
+
+      const btnSaveKelly = document.getElementById("btn-save-kelly");
+      if (btnSaveKelly) {
+        btnSaveKelly.addEventListener("click", () => {
+          const baseCfg = loadConfig() || {};
+          const uiCfg = getConfigFromUI();
+          const merged = Object.assign({}, baseCfg, uiCfg);
+          saveConfig(merged);
+          applyConfigToUI(merged);
+          alert("Đã lưu tham số Kelly (chỉ lưu trên máy của bạn).");
+        });
+      }
+    }
+
+    // ====== STAKE GỢI Ý THEO KELLY BIẾN THỂ ======
+    function computeStakeSuggestion() {
+      const cfg = loadConfig() || getConfigFromUI();
+      if (!cfg) return null;
+      const Bt = cfg.Bt || 0;
+      if (!Bt) return null;
+
+      const oddsInput = document.getElementById("ai-odds");
+      const pInput = document.getElementById("ai-pest");
+      const stakeSpan = document.getElementById("ai-stake-suggestion");
+      const percentSpan = document.getElementById("ai-stake-percent");
+
+      if (!oddsInput || !pInput || !stakeSpan || !percentSpan) return null;
+
+      const oddsValRaw = (oddsInput.value || "").toString().replace(",", ".").trim();
+      const odds = Number(oddsValRaw);
+      let pestRaw = (pInput.value || "").toString().trim();
+      pestRaw = pestRaw.replace("%", "").replace(",", ".");
+      const pestNum = Number(pestRaw);
+
+      if (!odds || !pestNum) {
+        stakeSpan.textContent = "0";
+        percentSpan.textContent = "0";
+        return null;
+      }
+
+      const p = pestNum / 100;
+      const b = odds - 1;
+      if (b <= 0) {
+        stakeSpan.textContent = "0";
+        percentSpan.textContent = "0";
+        return null;
+      }
+
+      const fullKelly = (b * p - (1 - p)) / b;
+      if (!isFinite(fullKelly) || fullKelly <= 0) {
+        // edge âm hoặc 0 -> không nên vào
+        stakeSpan.textContent = "0";
+        percentSpan.textContent = "0";
+        return { stake: 0, percent: 0 };
+      }
+
+      const fraction = (cfg.fraction || 25) / 100;
+      let fPercent = fullKelly * fraction * 100; // % bankroll
+
+      const f_max = typeof cfg.f_max !== "undefined" ? cfg.f_max : 2;
+      const f_min = typeof cfg.f_min !== "undefined" ? cfg.f_min : 0;
+
+      if (fPercent < f_min) {
+        // edge quá nhỏ so với ngưỡng tối thiểu -> coi như bỏ kèo
+        fPercent = 0;
+      }
+      if (fPercent > f_max) {
+        fPercent = f_max;
+      }
+
+      const stake = Bt * fPercent / 100;
+
+      stakeSpan.textContent = formatVnd(stake);
+      percentSpan.textContent = fPercent.toFixed(2).replace(/\\.00$/, "");
+
+      return { stake, percent: fPercent };
+    }
+
+    // ====== LƯU & QUẢN LÝ DANH SÁCH KÈO (LOCALSTORAGE) ======
+    function loadBets() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_BETS);
+        if (!raw) return [];
+        const arr = JSON.parse(raw);
+        return Array.isArray(arr) ? arr : [];
+      } catch (e) {
+        console.error("Lỗi load bets:", e);
+        return [];
+      }
+    }
+
+    function saveBets(bets) {
+      try {
+        localStorage.setItem(STORAGE_KEY_BETS, JSON.stringify(bets));
+      } catch (e) {
+        console.error("Lỗi save bets:", e);
+      }
+    }
+
+    function computeProfitForStatus(bet, status) {
+      const stake = Number(bet.stake || 0);
+      const odds = Number(bet.odds || 0);
+      if (!stake || !odds) return 0;
+      if (status === "win") {
+        return stake * (odds - 1);
+      }
+      if (status === "lose") {
+        return -stake;
+      }
+      return 0; // push hoặc pending
+    }
+
+    function renderBetList() {
+      const container = document.getElementById("bet-list");
+      if (!container) return;
+
+      const bets = loadBets();
+      if (!bets.length) {
+        container.innerHTML = '<div class="summary-sub">Chưa có kèo nào. Hãy lưu kèo từ tab "AI soi kèo".</div>';
+        return;
+      }
+
+      let html = "";
+      bets.forEach((bet) => {
+        const status = bet.status || "pending";
+        const profit = Number(bet.profit || 0);
+        const isWin = status === "win";
+        const isLose = status === "lose";
+        const isPush = status === "push";
+
+        const profitText = isWin
+          ? "+" + formatVnd(profit) + "đ"
+          : isLose
+          ? "-" + formatVnd(Math.abs(profit)) + "đ"
+          : isPush
+          ? "0đ"
+          : "—";
+
+        const profitClass = isWin
+          ? "bet-profit-positive"
+          : isLose
+          ? "bet-profit-negative"
+          : "bet-odds";
+
+        const statusLabel =
+          status === "win"
+            ? "WIN"
+            : status === "lose"
+            ? "LOSE"
+            : status === "push"
+            ? "PUSH"
+            : "PENDING";
+
+        const pEstPercent = bet.p_est ? Math.round(bet.p_est * 100) + "%" : "—";
+
+        html += `
+          <div class="bet-item" data-bet-id="${bet.id}">
+            <div class="bet-main-row">
+              <div class="bet-main">
+                <div class="bet-sport">${bet.sport || "Kèo"} • ${bet.market || ""}</div>
+                <div class="bet-match">${bet.match || "Trận chưa đặt tên"}</div>
+                <div class="bet-sub">Odds: ${bet.odds || "?"} · Stake: ${formatVnd(bet.stake || 0)}đ · Kết quả: ${statusLabel}</div>
+              </div>
+              <div class="bet-side">
+                <div class="${profitClass}">${profitText}</div>
+                <div class="bet-odds">p_est: ${pEstPercent}</div>
+              </div>
+            </div>
+            <div class="bet-status-row">
+              <label>Trạng thái kèo:</label>
+              <select class="bet-status-select">
+                <option value="pending"${status === "pending" ? " selected" : ""}>Đang chờ kết quả</option>
+                <option value="win"${status === "win" ? " selected" : ""}>Thắng</option>
+                <option value="lose"${status === "lose" ? " selected" : ""}>Thua</option>
+                <option value="push"${status === "push" ? " selected" : ""}>Hoàn tiền (Hòa kèo)</option>
+              </select>
+              <button class="btn-mini primary" type="button" data-role="update-bet">
+                ✅ Cập nhật
+              </button>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function updateBetStatusById(betId, newStatus) {
+      const bets = loadBets();
+      const idx = bets.findIndex(b => String(b.id) === String(betId));
+      if (idx === -1) return;
+      const bet = bets[idx];
+
+      const oldStatus = bet.status || "pending";
+      if (oldStatus === newStatus) {
+        return; // không đổi
+      }
+
+      const cfg = loadConfig() || getConfigFromUI();
+      let Bt = cfg.Bt || 0;
+
+      const oldProfit = Number(bet.profit || 0);
+      let newProfit = computeProfitForStatus(bet, newStatus);
+
+      if (oldStatus === "pending" && newStatus !== "pending") {
+        Bt += newProfit;
+      } else if (oldStatus !== "pending" && newStatus === "pending") {
+        // quay lại pending -> hoàn lại vốn
+        Bt -= oldProfit;
+        newProfit = 0;
+      } else if (oldStatus !== "pending" && newStatus !== "pending") {
+        // chuyển từ win -> lose hoặc ngược lại
+        Bt = Bt - oldProfit + newProfit;
+      }
+
+      bet.status = newStatus;
+      bet.profit = newProfit;
+
+      cfg.Bt = Bt;
+      saveBets(bets);
+      saveConfig(cfg);
+      applyConfigToUI(cfg);
+      renderBetList();
+    }
+
+    function initBetListInteractions() {
+      const container = document.getElementById("bet-list");
+      if (!container) return;
+
+      container.addEventListener("click", (e) => {
+        const btn = e.target.closest("button[data-role='update-bet']");
+        if (!btn) return;
+        const item = btn.closest(".bet-item");
+        if (!item) return;
+        const betId = item.getAttribute("data-bet-id");
+        const select = item.querySelector(".bet-status-select");
+        const newStatus = select ? select.value : "pending";
+        updateBetStatusById(betId, newStatus);
+      });
+    }
+
+    function initSaveBetFromAI() {
+      const btnSaveBet = document.getElementById("btn-save-bet");
+      if (!btnSaveBet) return;
+
+      btnSaveBet.addEventListener("click", () => {
+        const cfg = loadConfig() || getConfigFromUI();
+        if (!cfg || !(cfg.Bt > 0)) {
+          alert("Bạn chưa cấu hình vốn. Vào tab 'Vốn & Kelly' để nhập vốn trước.");
+          return;
+        }
+
+        const stakeInfo = computeStakeSuggestion();
+        if (!stakeInfo || !(stakeInfo.stake > 0)) {
+          alert("Chưa có gợi ý stake (thiếu odds/xác suất hoặc edge quá nhỏ).");
+          return;
+        }
+
+        const sportEl = document.getElementById("ai-sport");
+        const leagueEl = document.getElementById("ai-league");
+        const matchEl = document.getElementById("ai-match");
+        const marketEl = document.getElementById("ai-market");
+        const oddsEl = document.getElementById("ai-odds");
+        const pestEl = document.getElementById("ai-pest");
+
+        const oddsRaw = oddsEl && oddsEl.value ? oddsEl.value.toString().replace(",", ".") : "";
+        const odds = Number(oddsRaw) || null;
+
+        let pestRaw = pestEl && pestEl.value ? String(pestEl.value) : "";
+        pestRaw = pestRaw.replace("%", "").replace(",", ".");
+        const pestNum = Number(pestRaw);
+        const p_est = !isNaN(pestNum) && pestNum > 0 ? pestNum / 100 : null;
+
+        const bet = {
+          id: Date.now(),
+          sport: sportEl && sportEl.value ? sportEl.value : "Kèo mới",
+          league: leagueEl && leagueEl.value ? leagueEl.value : "",
+          match: matchEl && matchEl.value ? matchEl.value : "Trận chưa đặt tên",
+          market: marketEl && marketEl.value ? marketEl.value : "",
+          odds,
+          p_est,
+          stake: stakeInfo.stake,
+          status: "pending",
+          profit: 0,
+          createdAt: Date.now(),
+        };
+
+        const bets = loadBets();
+        bets.push(bet);
+        saveBets(bets);
+        renderBetList();
+        alert("Đã lưu kèo vào danh sách (chỉ lưu trên máy của bạn).");
+      });
+    }
+
+    // Khởi động cấu hình & danh sách kèo khi load trang
+    initConfig();
+    renderBetList();
+    initBetListInteractions();
+    initSaveBetFromAI();
+
+
+    // Preview ảnh kèo (UI only) - block soi kèo từ ảnh
+    const fileInput = document.getElementById("bet-image-input");
+    const previewWrapper = document.getElementById("bet-image-preview-wrapper");
+    const previewImg = document.getElementById("bet-image-preview");
+
+    if (fileInput && previewWrapper && previewImg) {
+      fileInput.addEventListener("change", (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          previewImg.src = ev.target.result;
+          previewWrapper.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Preview ảnh context cho AI phân tích (ảnh + text)
+    const ctxFileInput = document.getElementById("ai-context-image-input");
+    const ctxPreviewWrapper = document.getElementById("ai-context-image-preview-wrapper");
+    const ctxPreviewImg = document.getElementById("ai-context-image-preview");
+
+    if (ctxFileInput && ctxPreviewWrapper && ctxPreviewImg) {
+      ctxFileInput.addEventListener("change", (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const dataUrl = ev.target.result;
+          aiContextImageDataUrl = dataUrl; // lưu lại base64 để gửi lên Gemini
+          ctxPreviewImg.src = dataUrl;
+          ctxPreviewWrapper.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Toggle pill (dành cho tương lai nếu cần thêm lựa chọn manual)
+    const sportPills = document.querySelectorAll(".pill-row .pill");
+    sportPills.forEach(pill => {
+      pill.addEventListener("click", () => {
+        sportPills.forEach(p => p.classList.remove("active"));
+        pill.classList.add("active");
+      });
+    });
+
+    // ====== LOGIC GỌI GEMINI TRỰC TIẾP TỪ FRONT-END ======
+    const btnRunAi = document.getElementById("btn-run-ai-analysis");
+    const aiResult = document.getElementById("ai-analysis-result");
+    const aiLeanSide = document.getElementById("ai-lean-side");
+    const aiRiskScore = document.getElementById("ai-risk-score");
+
+    const aiSummaryQuick = document.getElementById("ai-summary-quick");
+    const aiKeyPoints = document.getElementById("ai-key-points");
+    const aiViewOnBet = document.getElementById("ai-view-on-bet");
+    const aiWarning = document.getElementById("ai-warning");
+
+    const aiTextMatch = document.getElementById("ai-text-match");
+    const aiLink = document.getElementById("ai-link");
+    const aiDepth = document.getElementById("ai-depth");
+
+    function fillFromResponse(data) {
+      if (aiSummaryQuick && data.summaryQuick) aiSummaryQuick.textContent = data.summaryQuick;
+      if (aiKeyPoints && data.keyPoints) aiKeyPoints.textContent = data.keyPoints;
+      if (aiViewOnBet && data.viewOnBet) aiViewOnBet.textContent = data.viewOnBet;
+      if (aiWarning && data.warning) aiWarning.textContent = data.warning;
+      if (aiResult && data.rawText) aiResult.value = data.rawText;
+      if (aiLeanSide && data.leanSide) aiLeanSide.textContent = data.leanSide;
+      if (aiRiskScore && typeof data.riskScore !== "undefined") {
+        aiRiskScore.textContent = String(data.riskScore);
+      }
+    }
+
+    async function callGeminiForSoiKeo(payload) {
+      if (!GEMINI_API_KEY || GEMINI_API_KEY === "YOUR_GEMINI_API_KEY_HERE") {
+        alert("Bạn chưa điền GEMINI_API_KEY trong file HTML.");
+        throw new Error("Missing GEMINI_API_KEY");
+      }
+
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+
+      const sysText = `
+Bạn là trợ lý soi kèo trung lập, nói tiếng Việt.
+Nhiệm vụ: phân tích trận đấu, gom thông tin (BXH, phong độ, sân nhà/sân khách, lịch sử đối đầu, chấn thương, lịch thi đấu dày, động lực...).
+CHỈ ĐƯỢC TRẢ VỀ JSON với format:
+
+{
+  "summaryQuick": "tóm tắt 2-3 câu, dễ hiểu",
+  "keyPoints": "các gạch đầu dòng về phong độ, BXH, lịch sử đối đầu, lịch thi đấu, chấn thương...",
+  "viewOnBet": "góc nhìn khách quan về độ ngon/không ngon của kèo, tuyệt đối không nói chắc chắn thắng",
+  "warning": "những rủi ro, kịch bản xấu có thể xảy ra",
+  "leanSide": "AI hơi nghiêng về bên nào, hoặc trung lập",
+  "riskScore": 0-10,
+  "rawText": "bản phân tích đầy đủ, chi tiết, vẫn bằng tiếng Việt"
+}
+
+Không được viết thêm chữ nào bên ngoài JSON.
+`;
+
+      const parts = [
+        { text: sysText },
+        {
+          text:
+            (payload.text || "") +
+            (payload.link ? `\nLink người dùng cung cấp: ${payload.link}` : "") +
+            (payload.depth ? `\nMức độ đào sâu: ${payload.depth}` : "")
+        }
+      ];
+
+      if (payload.imageDataUrl) {
+        const match = payload.imageDataUrl.match(/^data:(.+?);base64,(.+)$/);
+        if (match) {
+          const mimeType = match[1];
+          const base64Data = match[2];
+          parts.push({
+            inline_data: {
+              mime_type: mimeType,
+              data: base64Data,
+            },
+          });
+        }
+      }
+
+      const body = {
+        contents: [{ parts }],
+        generationConfig: {
+          temperature: 0.6,
+          maxOutputTokens: 2048,
+        },
+      };
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error("Gemini error:", res.status, errText);
+        throw new Error("Gemini API error " + res.status);
+      }
+
+      const data = await res.json();
+      const textResp = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+      let parsed;
+      try {
+        parsed = JSON.parse(textResp);
+      } catch (e) {
+        parsed = {
+          summaryQuick: "Không parse được JSON từ Gemini.",
+          keyPoints: "",
+          viewOnBet: "",
+          warning: "",
+          leanSide: "Trung lập",
+          riskScore: 5,
+          rawText: textResp,
+        };
+      }
+      return parsed;
+    }
+
+    if (btnRunAi) {
+      btnRunAi.addEventListener("click", async () => {
+        const payload = {
+          text: aiTextMatch ? aiTextMatch.value || "" : "",
+          link: aiLink ? aiLink.value || "" : "",
+          depth: aiDepth ? aiDepth.value || "normal" : "normal",
+          imageDataUrl: aiContextImageDataUrl || null,
+        };
+
+        btnRunAi.disabled = true;
+        const oldText = btnRunAi.textContent;
+        btnRunAi.textContent = "Đang hỏi AI...";
+
+        try {
+          const result = await callGeminiForSoiKeo(payload);
+          fillFromResponse(result);
+        } catch (err) {
+          console.error("Lỗi hỏi Gemini:", err);
+          alert("Lỗi khi gọi Gemini. Kiểm tra lại API key hoặc kết nối mạng.");
+        } finally {
+          btnRunAi.disabled = false;
+          btnRunAi.textContent = oldText;
+        }
+      });
+    }
+  </script>
+</body>
+</html>
