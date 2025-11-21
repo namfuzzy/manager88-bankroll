@@ -652,7 +652,16 @@
         background: radial-gradient(circle at top, #020617 0, #020617 100%);
       }
     }
-  </style>
+  
+    .footer-version {
+      margin-top: 8px;
+      padding: 6px 12px 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: center;
+      opacity: 0.8;
+    }
+</style>
 </head>
 <body>
   <div class="app-shell">
@@ -1240,8 +1249,6 @@ Ghi chú thêm nếu cần..."
     // TỰ ĐIỀN API KEY GEMINI CỦA BẠN VÀO DÒNG DƯỚI, KHÔNG CHIA SẺ CHO AI:
     const GEMINI_API_KEY = "AIzaSyD_9eNED9nHnDE3WnHj_2yI9hNNVTFhvZA"; // <-- sửa trực tiếp trên máy của bạn
     const GEMINI_MODEL = "gemini-2.0-pro"; // hoặc "gemini-2.0-flash"
-    // Backend GAS proxy URL
-    const API_URL_SOI_KEO = "https://script.google.com/macros/s/AKfycbx95CP7upkZnlQR_XyfEmV93qEzIsrn2gUpll1GIRYu8OoseHB_rQvLdyjLFQT0q93W/exec";
 
     // Biến lưu base64 của ảnh bối cảnh dùng cho AI phân tích (text + ảnh)
     let aiContextImageDataUrl = null;
@@ -1809,7 +1816,7 @@ Ghi chú thêm nếu cần..."
         console.error("GAS returned error:", data.message);
         throw new Error(data.message || "GAS reported error");
       }
-      // GAS đã trả đúng schema JSON: summaryQuick, keyPoints, viewOnBet, warning, leanSide, riskScore, rawText
+      // GAS đã trả về JSON đúng schema: summaryQuick, keyPoints, viewOnBet, warning, leanSide, riskScore, rawText
       return data;
     }
 
@@ -1831,7 +1838,7 @@ Ghi chú thêm nếu cần..."
           fillFromResponse(result);
         } catch (err) {
           console.error("Lỗi hỏi Gemini:", err);
-          alert("Lỗi khi gọi Gemini. Kiểm tra lại API key hoặc kết nối mạng.");
+          alert("Lỗi khi gọi AI (GAS/Gemini). Kiểm tra lại kết nối mạng hoặc GAS Web App.");
         } finally {
           btnRunAi.disabled = false;
           btnRunAi.textContent = oldText;
@@ -1839,5 +1846,9 @@ Ghi chú thêm nếu cần..."
       });
     }
   </script>
+
+  <div class="footer-version">
+    Manager88 · v0.4 · GAS proxy + Gemini 2.5 Pro
+  </div>
 </body>
 </html>
