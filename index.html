@@ -29,7 +29,7 @@
       min-height: 100vh;
       background: radial-gradient(circle at top, #111827 0, #020617 50%, #000 100%);
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-      font-size: 16px; /* chữ to hơn, dễ nhìn */
+      font-size: 18px; /* chữ to hơn, dễ nhìn trên mobile */
       color: var(--text-main);
       display: flex;
       align-items: center;
@@ -189,7 +189,7 @@
     }
 
     .screen-title {
-      font-size: 18px;
+      font-size: 20px;
       font-weight: 600;
       margin-bottom: 6px;
     }
@@ -218,7 +218,7 @@
     }
 
     .card-title {
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 600;
     }
 
@@ -409,6 +409,7 @@
 
     .btn-primary {
       width: 100%;
+      font-size: 16px;
       border: none;
       border-radius: var(--radius-full);
       padding: 10px 14px;
@@ -653,13 +654,38 @@
       }
     }
   
-    .footer-version {
-      margin-top: 8px;
-      padding: 6px 12px 10px;
-      font-size: 11px;
-      color: var(--text-muted);
+    .tilt-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .tilt-modal {
+      max-width: 420px;
+      width: 90%;
+      background: #111827;
+      border-radius: 18px;
+      padding: 18px 16px 16px;
+      border: 2px solid #fb7185;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.9);
       text-align: center;
-      opacity: 0.8;
+    }
+    .tilt-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fb7185;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+    .tilt-message {
+      font-size: 15px;
+      color: #f9fafb;
+      margin-bottom: 14px;
+      line-height: 1.5;
     }
 </style>
 </head>
@@ -675,7 +701,7 @@
             <span>Kelly Variant · VND</span>
           </div>
         </div>
-        <div class="tag-version">v0.3 UI · AI Ready</div>
+        <div class="tag-version">v0.6 UI · No AI</div>
       </div>
 
       <div class="header-summary">
@@ -946,140 +972,20 @@
       </section>
 
       <!-- SCREEN: AI SOI & PHÂN TÍCH KÈO -->
+            <!-- SCREEN: BET INPUT & STAKE CALC (NO AI) -->
       <section class="screen" data-screen="ai">
-        <div class="screen-title">AI soi & phân tích kèo</div>
+        <div class="screen-title">Tính tiền cược & nhập kèo</div>
         <div class="screen-subtitle">
-          Mục tiêu: AI sẽ <b>đi bới móc thông tin xung quanh trận đấu</b> (BXH, phong độ, lịch sử đối đầu, chấn thương, lịch thi đấu, tin bên lề...)
-          và trả về một bản nhận định khách quan. <b>Bạn luôn là người quyết định cuối cùng</b>.
+          Bạn <b>tự nghiên cứu kèo ở ngoài</b>, copy thông tin vào đây. App chỉ giúp bạn
+          giữ kỷ luật vốn & Kelly, tránh vượt quá mức chịu đựng của mình.
         </div>
 
-        <!-- KHỐI 1: AI phân tích kèo qua text/link (dùng internet) -->
+        <!-- KHỐI 1: THÔNG TIN KÈO -->
         <div class="card">
           <div class="card-header">
-            <div class="card-title">Phân tích kèo bằng dữ liệu & internet</div>
+            <div class="card-title">Thông tin kèo</div>
             <span class="badge">
-              <span class="badge-dot-green"></span> Dùng Gemini + web search (tương lai)</span>
-          </div>
-
-          <div class="form-row">
-            <label for="ai-text-match">
-              Mô tả kèo / copy nội dung từ nhà cái
-            </label>
-            <textarea
-              id="ai-text-match"
-              class="textarea"
-              placeholder="Ví dụ:
-Arsenal vs Chelsea - Ngoại hạng Anh
-Kèo: Arsenal -0.5 @ 1.90
-Ghi chú thêm nếu cần..."
-            ></textarea>
-          </div>
-
-          <div class="form-grid">
-            <div class="form-row">
-              <label for="ai-link">Link tham khảo (tùy chọn)</label>
-              <input
-                id="ai-link"
-                class="input"
-                placeholder="Dán link bài phân tích / trang kèo..."
-              />
-            </div>
-            <div class="form-row">
-              <label for="ai-depth">Mức độ đào sâu</label>
-              <select id="ai-depth" class="input">
-                <option value="fast">Nhanh, gọn</option>
-                <option value="normal" selected>Chuẩn, vừa phải</option>
-                <option value="deep">Rất kỹ, soi từng ngóc ngách</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <label>Ảnh kèo / ảnh màn hình (tùy chọn)</label>
-            <button class="btn-ghost btn-file" type="button">
-              <span>📷 Chọn / chụp ảnh cho AI phân tích</span>
-              <input id="ai-context-image-input" type="file" accept="image/*" />
-            </button>
-            <div class="image-preview" id="ai-context-image-preview-wrapper" style="display:none;">
-              <img id="ai-context-image-preview" alt="Ảnh phân tích AI" />
-            </div>
-            <div class="summary-sub">
-              Ảnh này để AI “nhìn” bố cục kèo, logo đội, giải đấu, thời gian... Sau này sẽ được gửi kèm cùng text lên Gemini.
-            </div>
-          </div>
-
-          <div class="form-row">
-            <label>AI sẽ tìm những gì?</label>
-            <div class="summary-sub">
-              • BXH, phong độ 5–10 trận gần nhất, sân nhà/sân khách<br/>
-              • Lịch sử đối đầu, số bàn thắng/bại trung bình<br/>
-              • Chấn thương, treo giò, lịch thi đấu dày, động lực thi đấu<br/>
-              • Nếu có dữ liệu: xG, số cú sút, khả năng phòng ngự/tấn công...
-            </div>
-          </div>
-
-          <button class="btn-primary" type="button" id="btn-run-ai-analysis">
-            <span>🧠 Gửi yêu cầu AI phân tích (demo)</span>
-          </button>
-
-          <div class="form-row" style="margin-top:8px;">
-            <label>Kết quả phân tích AI (demo – text tĩnh)</label>
-            <textarea
-              id="ai-analysis-result"
-              class="textarea"
-              readonly
-              placeholder="Sau này AI sẽ trả kết quả phân tích chi tiết tại đây:
-• Tóm tắt sức mạnh hai đội
-• Các yếu tố ẩn (chấn thương, lịch thi đấu...)
-• Nhận định khách quan về độ ngon của kèo
-• Cảnh báo rủi ro & nghiêng về bên nào"
-            ></textarea>
-          </div>
-
-          <div class="highlight-box">
-            <div>
-              <small>Định hướng cuối cùng:</small><br />
-              <span id="ai-lean-side">Trung lập</span>
-            </div>
-            <div style="text-align:right;">
-              <small>Mức độ rủi ro (AI đánh giá):</small><br />
-              <span id="ai-risk-score">—</span><small>/10</small>
-            </div>
-          </div>
-
-          <div class="summary-sub" style="margin-top:6px;">
-            Lưu ý quan trọng: AI chỉ là <b>trợ lý</b>, không phải thần thánh. 
-            Nó giúp bạn gom thông tin & sắp xếp lại cho dễ hiểu. <b>Quyết định đặt hay không luôn là của bạn</b>.
-          </div>
-        </div>
-
-        <!-- KHỐI 2: AI soi kèo từ ảnh (trích xuất thông tin kèo) -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title">Soi kèo từ ảnh (trích xuất thông tin kèo)</div>
-            <span class="badge">
-              <span class="badge-dot-green"></span> Input 1 ảnh
-            </span>
-          </div>
-          <button class="btn-primary btn-file" type="button">
-            <span>📷 Chọn / chụp ảnh kèo</span>
-            <input id="bet-image-input" type="file" accept="image/*" />
-          </button>
-          <div class="summary-sub" style="margin-top:6px;">
-            Chụp lại màn hình đang hiển thị odds, loại kèo, tên trận đấu. Sau này AI sẽ tự đọc thông tin kèo trong ảnh.
-          </div>
-
-          <div class="image-preview" id="bet-image-preview-wrapper" style="display:none;">
-            <img id="bet-image-preview" alt="Ảnh kèo đã chọn" />
-          </div>
-        </div>
-
-        <!-- Thông tin kèo đọc từ ảnh -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title">Thông tin kèo (AI đọc từ ảnh)</div>
-            <span class="badge">
-              <span class="badge-dot-green"></span> Demo · Tự động điền sau
+              <span class="badge-dot-green"></span> Bạn tự nhập
             </span>
           </div>
 
@@ -1089,8 +995,7 @@ Ghi chú thêm nếu cần..."
               <input
                 id="ai-sport"
                 class="input"
-                placeholder="VD: Bóng đá, Bóng rổ..."
-                readonly
+                placeholder="VD: Bóng đá, Bóng rổ, Quần vợt..."
               />
             </div>
             <div class="form-row">
@@ -1098,8 +1003,7 @@ Ghi chú thêm nếu cần..."
               <input
                 id="ai-league"
                 class="input"
-                placeholder="VD: Premier League..."
-                readonly
+                placeholder="VD: Premier League, NBA..."
               />
             </div>
           </div>
@@ -1110,7 +1014,6 @@ Ghi chú thêm nếu cần..."
               id="ai-match"
               class="input"
               placeholder="VD: Arsenal vs Chelsea"
-              readonly
             />
           </div>
 
@@ -1121,7 +1024,6 @@ Ghi chú thêm nếu cần..."
                 id="ai-market"
                 class="input"
                 placeholder="1X2, Handicap, O/U..."
-                readonly
               />
             </div>
             <div class="form-row">
@@ -1129,8 +1031,8 @@ Ghi chú thêm nếu cần..."
               <input
                 id="ai-odds"
                 class="input"
-                placeholder="1.90"
-                readonly
+                placeholder="VD: 1.90"
+                inputmode="decimal"
               />
             </div>
           </div>
@@ -1140,16 +1042,38 @@ Ghi chú thêm nếu cần..."
             <input
               id="ai-pest"
               class="input"
-              placeholder="VD: 55% (AI gợi ý, bạn có quyền chỉnh)"
-              readonly
+              placeholder="VD: 55 (nghĩa là 55%)"
+              inputmode="decimal"
             />
             <div class="summary-sub">
-              Sau này AI sẽ gợi ý khoảng xác suất. Cuối cùng <b>bạn</b> vẫn là người quyết định con số dùng cho Kelly.
+              Đây là <b>con số bạn tự ước lượng</b> sau khi nghiên cứu: 50 = 50%, 60 = 60%...
+              App dùng nó để tính tiền cược theo Kelly biến thể.
             </div>
           </div>
         </div>
 
-        <!-- Gợi ý tiền cược theo Kelly biến thể -->
+        <!-- KHỐI 2: ẢNH KÈM KÈO (TÙY CHỌN, CHỈ LƯU ĐỂ NHÌN LẠI) -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Ảnh / screenshot kèo (tùy chọn)</div>
+            <span class="badge">
+              <span class="badge-dot-green"></span> Chỉ để lưu tham khảo
+            </span>
+          </div>
+          <button class="btn-ghost btn-file" type="button">
+            <span>📷 Chọn ảnh kèo từ thư viện</span>
+            <input id="bet-image-input" type="file" accept="image/*" />
+          </button>
+          <div class="summary-sub" style="margin-top:6px;">
+            Bạn có thể chọn ảnh màn hình kèo để sau này nhìn lại. Ảnh <b>không</b> gửi đi đâu, chỉ lưu cục bộ trên máy bạn.
+          </div>
+
+          <div class="image-preview" id="bet-image-preview-wrapper" style="display:none;">
+            <img id="bet-image-preview" alt="Ảnh kèo đã chọn" />
+          </div>
+        </div>
+
+        <!-- KHỐI 3: GỢI Ý TIỀN CƯỢC THEO KELLY BIẾN THỂ -->
         <div class="card">
           <div class="card-header">
             <div class="card-title">Gợi ý tiền cược (Kelly biến thể)</div>
@@ -1160,7 +1084,7 @@ Ghi chú thêm nếu cần..."
 
           <div class="highlight-box">
             <div>
-              <small>Gợi ý stake (demo, chưa tính):</small><br />
+              <small>Gợi ý stake:</small><br />
               <span id="ai-stake-suggestion">0</span> <small>VND</small>
             </div>
             <div style="text-align:right;">
@@ -1169,19 +1093,20 @@ Ghi chú thêm nếu cần..."
             </div>
           </div>
           <div class="summary-sub" style="margin-top:6px;">
-            Quy trình sau này:
-            <ul style="margin:4px 0 0 16px; padding-left:0; font-size:12px;">
-              <li>Ảnh/text → AI trích xuất odds + loại kèo + p_est.</li>
-              <li>App lấy p_est + odds + vốn hiện tại → tính stake theo Kelly biến thể.</li>
-              <li>Bạn kiểm tra lại, nếu thấy hợp lý thì mới vào lệnh.</li>
-            </ul>
+            App sẽ dùng odds + p_est bạn nhập và vốn hiện tại để tính tiền cược hợp lý theo Kelly biến thể
+            và các giới hạn bạn đã đặt ở phần “Vốn & Kelly”.
           </div>
 
+          <button id="btn-calc-stake" class="btn-ghost" type="button">
+            <span>🧮 Tính tiền cược đề xuất</span>
+          </button>
+
           <button id="btn-save-bet" class="btn-primary" type="button">
-            <span>💾 Lưu kèo</span>
+            <span>💾 Lưu kèo vào danh sách</span>
           </button>
         </div>
       </section>
+
 
       <!-- SCREEN: BET LIST -->
       <section class="screen" data-screen="bets">
@@ -1230,8 +1155,8 @@ Ghi chú thêm nếu cần..."
         <div class="nav-indicator"></div>
       </div>
       <div class="nav-item" data-target="ai">
-        <span class="icon">🧠</span>
-        <span>AI soi kèo</span>
+        <span class="icon">🎯</span>
+        <span>Tính tiền cược</span>
         <div class="nav-indicator"></div>
       </div>
       <div class="nav-item" data-target="bets">
@@ -1244,14 +1169,7 @@ Ghi chú thêm nếu cần..."
 
   <!-- JS nhỏ: chuyển màn, slider label, preview ảnh, demo AI (UI only) -->
     <script>
-    // ⚠️ CẢNH BÁO: API key đặt trong file HTML rất dễ bị lộ.
-    // Chỉ dùng cách này nếu bạn CHẤP NHẬN RỦI RO và chỉ share file cho riêng mình.
-    // TỰ ĐIỀN API KEY GEMINI CỦA BẠN VÀO DÒNG DƯỚI, KHÔNG CHIA SẺ CHO AI:
-    const GEMINI_API_KEY = "AIzaSyD_9eNED9nHnDE3WnHj_2yI9hNNVTFhvZA"; // <-- sửa trực tiếp trên máy của bạn
-    const GEMINI_MODEL = "gemini-2.0-pro"; // hoặc "gemini-2.0-flash"
 
-    // Biến lưu base64 của ảnh bối cảnh dùng cho AI phân tích (text + ảnh)
-    let aiContextImageDataUrl = null;
 
     // Chuyển màn (bottom nav)
     const screens = document.querySelectorAll(".screen");
@@ -1495,7 +1413,31 @@ Ghi chú thêm nếu cần..."
       return { stake, percent: fPercent };
     }
 
-    // ====== LƯU & QUẢN LÝ DANH SÁCH KÈO (LOCALSTORAGE) ======
+    
+    // Tự động tính lại stake khi thay đổi odds / p_est
+    const oddsInputEl = document.getElementById("ai-odds");
+    const pEstInputEl = document.getElementById("ai-pest");
+    if (oddsInputEl) {
+      oddsInputEl.addEventListener("input", () => {
+        computeStakeSuggestion();
+      });
+    }
+    if (pEstInputEl) {
+      pEstInputEl.addEventListener("input", () => {
+        computeStakeSuggestion();
+      });
+    }
+    const btnCalcStake = document.getElementById("btn-calc-stake");
+    if (btnCalcStake) {
+      btnCalcStake.addEventListener("click", () => {
+        const info = computeStakeSuggestion();
+        if (!info || !info.stake) {
+          alert("Chưa tính được stake. Hãy nhập odds và xác suất (p_est) trước.");
+        }
+      });
+    }
+
+// ====== LƯU & QUẢN LÝ DANH SÁCH KÈO (LOCALSTORAGE) ======
     function loadBets() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY_BETS);
@@ -1604,7 +1546,81 @@ Ghi chú thêm nếu cần..."
       container.innerHTML = html;
     }
 
-    function updateBetStatusById(betId, newStatus) {
+    
+    // ====== POPUP CẢNH BÁO VI PHẠM KỶ LUẬT VỐN ======
+    let tiltAudioCtx = null;
+
+    function playTiltSound() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        if (!tiltAudioCtx) {
+          tiltAudioCtx = new AudioCtx();
+        }
+        const ctx = tiltAudioCtx;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "square";
+        osc.frequency.value = 880;
+        gain.gain.value = 0.35;
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        setTimeout(() => {
+          osc.stop();
+        }, 700);
+      } catch (e) {
+        console.warn("Không phát được âm cảnh báo:", e);
+      }
+    }
+
+    function showTiltWarning(message) {
+      const overlay = document.getElementById("tilt-overlay");
+      const msgEl = document.getElementById("tilt-message");
+      if (!overlay || !msgEl) {
+        alert(message);
+        return;
+      }
+      msgEl.textContent = message;
+      overlay.style.display = "flex";
+      playTiltSound();
+    }
+
+    function hideTiltWarning() {
+      const overlay = document.getElementById("tilt-overlay");
+      if (overlay) overlay.style.display = "none";
+    }
+
+    const tiltCloseBtn = document.getElementById("tilt-close-btn");
+    if (tiltCloseBtn) {
+      tiltCloseBtn.addEventListener("click", () => {
+        hideTiltWarning();
+      });
+    }
+
+    function checkBankrollLimitsAndWarn(cfg) {
+      const B0 = cfg.B0 || 0;
+      const Bt = cfg.Bt || 0;
+      const dayLimit = cfg.dayLimit || 0;
+      const monthLimit = cfg.monthLimit || 0;
+      if (!B0 || !Bt) return;
+
+      const drawdown = B0 - Bt;
+      if (drawdown <= 0) return;
+      const drawdownPercent = (drawdown / B0) * 100;
+
+      if (monthLimit && drawdownPercent >= monthLimit) {
+        showTiltWarning(
+          `Vốn của bạn đã giảm khoảng ${drawdownPercent.toFixed(1)}% so với ban đầu, vượt GIỚI HẠN THÁNG ${monthLimit}%. Đây là vùng CHÁY TÀI KHOẢN. DỪNG LẠI NGAY, KHÔNG ĐƯỢC GỠ.`
+        );
+      } else if (dayLimit && drawdownPercent >= dayLimit) {
+        showTiltWarning(
+          `Bạn đã thua khoảng ${drawdownPercent.toFixed(1)}% vốn ban đầu, vượt GIỚI HẠN NGÀY ${dayLimit}%. HÃY DỪNG LẠI NGAY HÔM NAY, KHÔNG ĐƯỢC TĂNG KÈO ĐỂ GỠ.`
+        );
+      }
+    }
+
+function updateBetStatusById(betId, newStatus) {
       const bets = loadBets();
       const idx = bets.findIndex(b => String(b.id) === String(betId));
       if (idx === -1) return;
@@ -1639,6 +1655,7 @@ Ghi chú thêm nếu cần..."
       saveBets(bets);
       saveConfig(cfg);
       applyConfigToUI(cfg);
+      checkBankrollLimitsAndWarn(cfg);
       renderBetList();
     }
 
@@ -1737,26 +1754,6 @@ Ghi chú thêm nếu cần..."
       });
     }
 
-    // Preview ảnh context cho AI phân tích (ảnh + text)
-    const ctxFileInput = document.getElementById("ai-context-image-input");
-    const ctxPreviewWrapper = document.getElementById("ai-context-image-preview-wrapper");
-    const ctxPreviewImg = document.getElementById("ai-context-image-preview");
-
-    if (ctxFileInput && ctxPreviewWrapper && ctxPreviewImg) {
-      ctxFileInput.addEventListener("change", (e) => {
-        const file = e.target.files && e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          const dataUrl = ev.target.result;
-          aiContextImageDataUrl = dataUrl; // lưu lại base64 để gửi lên Gemini
-          ctxPreviewImg.src = dataUrl;
-          ctxPreviewWrapper.style.display = "block";
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-
     // Toggle pill (dành cho tương lai nếu cần thêm lựa chọn manual)
     const sportPills = document.querySelectorAll(".pill-row .pill");
     sportPills.forEach(pill => {
@@ -1766,89 +1763,20 @@ Ghi chú thêm nếu cần..."
       });
     });
 
-    // ====== LOGIC GỌI GEMINI TRỰC TIẾP TỪ FRONT-END ======
-    const btnRunAi = document.getElementById("btn-run-ai-analysis");
-    const aiResult = document.getElementById("ai-analysis-result");
-    const aiLeanSide = document.getElementById("ai-lean-side");
-    const aiRiskScore = document.getElementById("ai-risk-score");
-
-    const aiSummaryQuick = document.getElementById("ai-summary-quick");
-    const aiKeyPoints = document.getElementById("ai-key-points");
-    const aiViewOnBet = document.getElementById("ai-view-on-bet");
-    const aiWarning = document.getElementById("ai-warning");
-
-    const aiTextMatch = document.getElementById("ai-text-match");
-    const aiLink = document.getElementById("ai-link");
-    const aiDepth = document.getElementById("ai-depth");
-
-    function fillFromResponse(data) {
-      if (aiSummaryQuick && data.summaryQuick) aiSummaryQuick.textContent = data.summaryQuick;
-      if (aiKeyPoints && data.keyPoints) aiKeyPoints.textContent = data.keyPoints;
-      if (aiViewOnBet && data.viewOnBet) aiViewOnBet.textContent = data.viewOnBet;
-      if (aiWarning && data.warning) aiWarning.textContent = data.warning;
-      if (aiResult && data.rawText) aiResult.value = data.rawText;
-      if (aiLeanSide && data.leanSide) aiLeanSide.textContent = data.leanSide;
-      if (aiRiskScore && typeof data.riskScore !== "undefined") {
-        aiRiskScore.textContent = String(data.riskScore);
-      }
-    }
-
-    async function callGeminiForSoiKeo(payload) {
-      if (!API_URL_SOI_KEO) {
-        alert("Chưa cấu hình URL backend GAS (API_URL_SOI_KEO).");
-        throw new Error("Missing API_URL_SOI_KEO");
-      }
-
-      const res = await fetch(API_URL_SOI_KEO, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const errText = await res.text();
-        console.error("GAS proxy error:", res.status, errText);
-        throw new Error("GAS/Gemini API error " + res.status);
-      }
-
-      const data = await res.json();
-      if (data && data.error) {
-        console.error("GAS returned error:", data.message);
-        throw new Error(data.message || "GAS reported error");
-      }
-      // GAS đã trả về JSON đúng schema: summaryQuick, keyPoints, viewOnBet, warning, leanSide, riskScore, rawText
-      return data;
-    }
-
-    if (btnRunAi) {
-      btnRunAi.addEventListener("click", async () => {
-        const payload = {
-          text: aiTextMatch ? aiTextMatch.value || "" : "",
-          link: aiLink ? aiLink.value || "" : "",
-          depth: aiDepth ? aiDepth.value || "normal" : "normal",
-          imageDataUrl: aiContextImageDataUrl || null,
-        };
-
-        btnRunAi.disabled = true;
-        const oldText = btnRunAi.textContent;
-        btnRunAi.textContent = "Đang hỏi AI...";
-
-        try {
-          const result = await callGeminiForSoiKeo(payload);
-          fillFromResponse(result);
-        } catch (err) {
-          console.error("Lỗi hỏi Gemini:", err);
-          alert("Lỗi khi gọi AI (GAS/Gemini). Kiểm tra lại kết nối mạng hoặc GAS Web App.");
-        } finally {
-          btnRunAi.disabled = false;
-          btnRunAi.textContent = oldText;
-        }
-      });
-    }
+    
   </script>
 
-  <div class="footer-version">
-    Manager88 · v0.4 · GAS proxy + Gemini 2.5 Pro
+  <div id="tilt-overlay" class="tilt-overlay" style="display:none;">
+    <div class="tilt-modal">
+      <div class="tilt-title">CẢNH BÁO KỶ LUẬT VỐN</div>
+      <div class="tilt-message" id="tilt-message">
+        Bạn đang vượt quá giới hạn lỗ đã đặt ra. DỪNG LẠI NGAY, KHÔNG ĐƯỢC GỠ.
+      </div>
+      <button id="tilt-close-btn" class="btn-primary" type="button">
+        <span>🔥 TÔI ĐÃ HIỂU, TẠM DỪNG LẠI</span>
+      </button>
+    </div>
   </div>
+
 </body>
 </html>
