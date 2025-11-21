@@ -1138,7 +1138,26 @@
           </div>
         </div>
 
-                <div class="bet-list" id="bet-list"></div>
+                <div class="card">
+          <div class="card-header">
+            <div class="card-title">Xuất / nhập dữ liệu</div>
+          </div>
+          <div class="form-grid">
+            <button id="btn-export-json" class="btn-ghost" type="button">
+              <span>📤 Xuất JSON (vốn + danh sách kèo)</span>
+            </button>
+            <button id="btn-import-json" class="btn-ghost" type="button">
+              <span>📥 Nhập JSON đã lưu</span>
+            </button>
+          </div>
+          <div class="summary-sub" style="margin-top:6px;">
+            Xuất file để lưu trữ / chuyển sang thiết bị khác. Khi nhập lại, vốn và danh sách kèo
+            sẽ được ghi đè theo dữ liệu trong file JSON.
+          </div>
+          <input id="import-json-input" type="file" accept="application/json" style="display:none;" />
+        </div>
+
+        <div class="bet-list" id="bet-list"></div>
       </section>
     </main>
 
@@ -1437,6 +1456,72 @@
       });
     }
 
+
+    // ====== XUẤT / NHẬP JSON (CONFIG + DANH SÁCH KÈO) ======
+    function getFullStateSnapshot() {
+      return {
+        version: "manager88_v1",
+        exportedAt: new Date().toISOString(),
+        config: loadConfig() || getConfigFromUI(),
+        bets: loadBets()
+      };
+    }
+
+    function exportJsonState() {
+      try {
+        const state = getFullStateSnapshot();
+        const json = JSON.stringify(state, null, 2);
+        const blob = new Blob([json], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+        a.href = url;
+        a.download = "manager88_backup_" + stamp + ".json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (e) {
+        console.error("Lỗi export JSON:", e);
+        alert("Không xuất được JSON. Thử lại sau.");
+      }
+    }
+
+    function importJsonFile(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const text = e.target.result;
+          const data = JSON.parse(text);
+          if (!data || typeof data !== "object") {
+            throw new Error("Dữ liệu không hợp lệ.");
+          }
+          if (!data.config && !data.bets) {
+            throw new Error("Không tìm thấy trường config/bets trong file.");
+          }
+
+          if (data.config) {
+            saveConfig(data.config);
+            applyConfigToUI(data.config);
+          }
+          if (data.bets) {
+            if (!Array.isArray(data.bets)) {
+              throw new Error("Trường bets phải là một mảng.");
+            }
+            saveBets(data.bets);
+            renderBetList();
+          }
+
+          alert("Đã nhập dữ liệu JSON thành công.");
+        } catch (err) {
+          console.error("Lỗi import JSON:", err);
+          alert("File JSON không hợp lệ hoặc bị hỏng.");
+        }
+      };
+      reader.readAsText(file, "utf-8");
+    }
+
+
 // ====== LƯU & QUẢN LÝ DANH SÁCH KÈO (LOCALSTORAGE) ======
     function loadBets() {
       try {
@@ -1734,6 +1819,29 @@ function updateBetStatusById(betId, newStatus) {
     renderBetList();
     initBetListInteractions();
     initSaveBetFromAI();
+    // Gắn sự kiện cho nút export / import JSON
+    const btnExportJson = document.getElementById("btn-export-json");
+    const btnImportJson = document.getElementById("btn-import-json");
+    const importJsonInput = document.getElementById("import-json-input");
+
+    if (btnExportJson) {
+      btnExportJson.addEventListener("click", () => {
+        exportJsonState();
+      });
+    }
+
+    if (btnImportJson && importJsonInput) {
+      btnImportJson.addEventListener("click", () => {
+        importJsonInput.click();
+      });
+      importJsonInput.addEventListener("change", (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        importJsonFile(file);
+        importJsonInput.value = "";
+      });
+    }
+
 
 
     // Preview ảnh kèo (UI only) - block soi kèo từ ảnh
